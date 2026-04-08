@@ -1,0 +1,69 @@
+---
+title: "Project Draft workshop"
+author: "Joseph G."
+date: "2026-04-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+```{r}
+my_data <- imdb_top_1000
+
+print(my_data)
+```
+```{r}
+# What are the top 5 directors with the the highest movie rating?
+
+library(dplyr)
+
+ top_5_directors <- my_data %>%
+   group_by(Director)%>%
+   summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))%>%
+   arrange(desc(avg_rating))%>%
+   head(10)
+ print(top_5_directors)
+ 
+ library(ggplot2)
+ 
+p <- ggplot(top_5_directors, aes(x = Director, y = avg_rating, fill = Director)) + geom_col() + labs(title = "TOP 5 DIRECTORS BY AVERGAE RATING", x= "Director's name", y = "IMDB Average rating")
+
+library(plotly)
+ggplotly(p)
+```
+1. What is the relationship between ratings and runtime?
+
+```{r}
+
+my_data <- my_data%>%
+  mutate(Runtime = as.numeric(gsub(" min", "", Runtime)))
+  
+ggplot(my_data, aes(x = Runtime, y = IMDB_Rating)) +
+  geom_point(alpha = 0.6) +
+  labs(
+    title = "People's Rating vs Runtime",
+    x = "Runtime",
+    y = "IMDb Rating"
+  )
+```
+
+
+
+```{r}
+ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
+  geom_point(alpha = 0.6) +
+  labs(
+    title = "Critics Score vs Runtime",
+    x = "Runtime",
+    y = "Meta_score"
+  )
+```
+```{r}
+
+```
+
