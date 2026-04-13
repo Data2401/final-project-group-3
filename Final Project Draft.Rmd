@@ -20,9 +20,10 @@ my_data <- read.csv("imdb_top_1000.csv")
 
 glimpse(my_data)
 ```
-```{r}
-# What are the top 5 directors with the the highest movie rating?
 
+1. What are the top 5 directors with the the highest movie rating?
+
+```{r}
 library(dplyr)
 
  top_5_directors <- my_data %>% # here we rename the data set to the top 5 ones 
@@ -39,7 +40,7 @@ p <- ggplot(top_5_directors, aes(x = Director, y = avg_rating, fill = Director))
 library(plotly)                 # here we open the plotly tool from the library 
 ggplotly(p)                     # and lastly here we apply the plotly tool to "p"
 ```
-1. What is the relationship between ratings and runtime?
+2. What is the relationship between ratings and runtime?
 
 ```{r}
 
@@ -56,7 +57,6 @@ ggplot(my_data, aes(x = Runtime, y = IMDB_Rating)) +
 ```
 
 
-
 ```{r}
 ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
   geom_point(alpha = 0.6) +
@@ -66,9 +66,9 @@ ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
     y = "Meta_score"
   )
 ```
-```{r}
-# Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. 
+3. Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. 
 
+```{r}
 library(dplyr)
 top_actors <- my_data%>%
   group_by(Star1)%>%
@@ -83,7 +83,7 @@ library(plotly)
 ggplotly(g)
 ```
 
-2.	Which genres tend to have the longest runtime?
+4. Which genres tend to have the longest runtime?
 
 ```{r}
 my_data <- my_data %>%
@@ -113,9 +113,9 @@ ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
 ```
 
 
+5. Average gross movies made per decade
 
 ```{r}
-
 library(dplyr)
 
 decade_gross <- my_data %>%
@@ -139,7 +139,7 @@ library(plotly)
 ggplotly(l)
 ```
 
-3. Which genre produces the most highly-rated movies (rating > 8.5)?
+6. Which genre produces the most highly-rated movies (rating > 8.5)?
 
 ```{r}
 high_rated <- my_data %>%
