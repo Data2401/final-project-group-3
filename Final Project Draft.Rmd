@@ -112,7 +112,6 @@ ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
   )
 ```
 
-<<<<<<< HEAD
 
 
 ```{r}
@@ -140,7 +139,6 @@ library(plotly)
 ggplotly(l)
 ```
 
-=======
 3. Which genre produces the most highly-rated movies (rating > 8.5)?
 
 ```{r}
@@ -168,4 +166,4 @@ ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
     y = "Count of Movies"
   )
 ```
->>>>>>> 80007cf6122f440afa80be2cdc5f333417f3ca73
+
