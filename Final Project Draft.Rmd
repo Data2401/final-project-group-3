@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyr)
+library(tidyverse)
 library(readr)
 my_data <- read.csv("imdb_top_1000.csv")
 
@@ -111,6 +112,7 @@ ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
   )
 ```
 
+<<<<<<< HEAD
 
 
 ```{r}
@@ -138,3 +140,32 @@ library(plotly)
 ggplotly(l)
 ```
 
+=======
+3. Which genre produces the most highly-rated movies (rating > 8.5)?
+
+```{r}
+high_rated <- my_data %>%
+  filter(IMDB_Rating > 8.5)
+
+high_rated_genre <- high_rated %>%
+  separate_rows(Genre, sep = ", ")
+
+genre_counts <- high_rated_genre %>%
+  group_by(Genre) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+head(genre_counts)
+```
+
+```{r}
+ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Number of Highly Rated Movies (IMDb > 8.5) by Genre",
+    x = "Genre",
+    y = "Count of Movies"
+  )
+```
+>>>>>>> 80007cf6122f440afa80be2cdc5f333417f3ca73
