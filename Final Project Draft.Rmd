@@ -1,6 +1,6 @@
 ---
 title: "Project Draft workshop"
-author: "Joseph G."
+author: "Joseph G., Barbara S."
 date: "2026-04-08"
 output: html_document
 ---
@@ -13,9 +13,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
-my_data <- imdb_top_1000
+library(readr)
+my_data <- read.csv("imdb_top_1000.csv")
 
-print(my_data)
+glimpse(my_data)
 ```
 ```{r}
 # What are the top 5 directors with the the highest movie rating?
@@ -67,3 +68,11 @@ ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
 
 ```
 
+2.	Which genres tend to have the longest runtime?
+
+```{r}
+my_data <- my_data %>%
+  mutate(Runtime = as.numeric(gsub("[^0-9]", "", Runtime)))
+
+my_data
+```
