@@ -110,3 +110,31 @@ ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
     y = "Average Runtime (minutes)"
   )
 ```
+
+
+
+```{r}
+
+library(dplyr)
+
+decade_gross <- my_data %>%
+
+  mutate(Gross = as.numeric(gsub("[^0-9]", "", Gross))) %>%
+  mutate(Released_Year = as.numeric(gsub("[^0-9]", "", Released_Year))) %>%
+  mutate(Decade = (Released_Year %/% 10) * 10) %>%
+  filter(!is.na(Decade), !is.na(Gross)) %>%
+  group_by(Decade) %>%
+  summarize(
+    Average_Gross = mean(Gross, na.rm = TRUE),
+    Movie_Count = n()
+  ) %>%
+  arrange(Decade)
+
+print(decade_gross)
+
+library(ggplot2)
+l <- ggplot(decade_gross, aes(x = Decade, y = Average_Gross)) + geom_line()+geom_point()
+library(plotly)
+ggplotly(l)
+```
+
