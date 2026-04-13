@@ -22,19 +22,19 @@ print(my_data)
 
 library(dplyr)
 
- top_5_directors <- my_data %>%
-   group_by(Director)%>%
-   summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))%>%
-   arrange(desc(avg_rating))%>%
-   head(10)
- print(top_5_directors)
+ top_5_directors <- my_data %>% # here we rename the data set to the top 5 ones 
+   group_by(Director)%>%        # here we have to group by the directors coz this is what we want 
+   summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))%>% # then we have to summarize to the next variable that is the avg rating for the top 5 
+   arrange(desc(avg_rating))%>% # here we have to arrange the avg rating data in descending order 
+   head(5)                     # here we select the top whatever, like top 5 or top 10
+ print(top_5_directors)         # here we print what the data set will look like 
  
- library(ggplot2)
+ library(ggplot2)               # here we have to open the plot library to make the plot 
  
-p <- ggplot(top_5_directors, aes(x = Director, y = avg_rating, fill = Director)) + geom_col() + labs(title = "TOP 5 DIRECTORS BY AVERGAE RATING", x= "Director's name", y = "IMDB Average rating")
+p <- ggplot(top_5_directors, aes(x = Director, y = avg_rating, fill = Director)) + geom_col() + labs(title = "TOP 5 DIRECTORS BY AVERGAE RATING", x= "Director's name", y = "IMDB Average rating")        # at the beginning we make it p (plot) <- ggplot that way it can be used for the plotly tool  
 
-library(plotly)
-ggplotly(p)
+library(plotly)                 # here we open the plotly tool from the library 
+ggplotly(p)                     # and lastly here we apply the plotly tool to "p"
 ```
 1. What is the relationship between ratings and runtime?
 
@@ -64,6 +64,19 @@ ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
   )
 ```
 ```{r}
+# Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. 
 
+library(dplyr)
+top_actors <- my_data%>%
+  group_by(Star1)%>%
+  summarise(Movie_count = n())%>%
+  arrange(desc(Movie_count))%>%
+  head(10)
+print(top_actors)
+
+library(ggplot2)
+g <- ggplot(top_actors, aes(x = Star1, y = Movie_count, fill = Star1)) + geom_col() +labs(title = "Top 5 lead actors and how many time they appear in the data set", x = "Lead actor's name", y = "Amount of times they appear in the dataset" )
+library(plotly)
+ggplotly(g)
 ```
 
