@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
+library(tidyr)
 library(readr)
 my_data <- read.csv("imdb_top_1000.csv")
 
@@ -74,5 +75,25 @@ ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
 my_data <- my_data %>%
   mutate(Runtime = as.numeric(gsub("[^0-9]", "", Runtime)))
 
-my_data
+my_data_genre <- my_data %>%
+  separate_rows(Genre, sep = ", ")
+
+genre_runtime <- my_data_genre %>%
+  group_by(Genre) %>%
+  summarize(avg_runtime = mean(Runtime, na.rm = TRUE)) %>%
+  arrange(desc(avg_runtime))
+
+head(genre_runtime)
+```
+
+
+```{r}
+ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Average Runtime by Genre",
+    x = "Genre",
+    y = "Average Runtime (minutes)"
+  )
 ```
