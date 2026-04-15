@@ -1,6 +1,6 @@
 ---
 title: "Project Draft workshop"
-author: "Joseph G., Barbara S."
+author: "Joseph G., Barbara S., Rakendra S."
 date: "2026-04-08"
 output: html_document
 ---
@@ -25,6 +25,7 @@ my_data <- read.csv("imdb_top_1000.csv")
 glimpse(my_data)
 
 ```
+<<<<<<< HEAD
 # Data Cleaning: emo::ji("smile")
 
 ```{r}
@@ -44,9 +45,16 @@ my_data$Runtime <-as.numeric(my_data$Runtime)
    head(5)                     
  print(top_5_directors)         
 p <- ggplot(top_5_directors, aes(x = Director, y = avg_rating, fill = Director)) + geom_col() + labs(title = "TOP 5 DIRECTORS BY AVERGAE RATING", x= "Director's name", y = "IMDB Average rating")       
+=======
+
+1. What are the top 5 directors with the the highest movie rating?
+
+```{r}
+library(dplyr)
+>>>>>>> e2ca0a63e1290033a50de5b6bbc631518800cd67
 
 ```
-1. What is the relationship between ratings and runtime?
+2. What is the relationship between ratings and runtime?
 
 ```{r}
 
@@ -63,7 +71,6 @@ ggplot(my_data, aes(x = Runtime, y = IMDB_Rating)) +
 ```
 
 
-
 ```{r}
 ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
   geom_point(alpha = 0.6) +
@@ -73,9 +80,9 @@ ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
     y = "Meta_score"
   )
 ```
-```{r}
-# Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. 
+3. Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. 
 
+```{r}
 library(dplyr)
 top_actors <- my_data%>%
   group_by(Star1)%>%
@@ -90,7 +97,7 @@ library(plotly)
 ggplotly(g)
 ```
 
-2.	Which genres tend to have the longest runtime?
+4. Which genres tend to have the longest runtime?
 
 ```{r}
 my_data <- my_data %>%
@@ -120,11 +127,16 @@ ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
 ```
 
 
+5. Average gross movies made per decade
 
 ```{r}
+<<<<<<< HEAD
 country <- "US"
 inflation_dataframe <- retrieve_inflation_data(country)
 countries_dataframe <- show_countries()
+=======
+library(dplyr)
+>>>>>>> e2ca0a63e1290033a50de5b6bbc631518800cd67
 
 decade_gross <- my_data %>%
   mutate(adjusted_gross = adjust_for_inflation(parse_number(Gross), as.numeric(Released_Year), country, to_date = 2024), 
@@ -149,7 +161,7 @@ ggplotly(l)
  
 
 
-3. Which genre produces the most highly-rated movies (rating > 8.5)?
+6. Which genre produces the most highly-rated movies (rating > 8.5)?
 
 ```{r}
 high_rated <- my_data %>%
@@ -177,7 +189,105 @@ ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
   )
 ```
 
+<<<<<<< HEAD
 ```{r}
 
 ```
 
+=======
+7. Which Director and Lead Actor work together most often?
+```{r}
+# Finding the most frequent pairings
+top_duos <- my_data %>%
+  group_by(Director, Star1) %>%
+  summarise(movie_count = n(), .groups = 'drop') %>%
+  arrange(desc(movie_count)) %>%
+  head(5)
+
+#  Plot
+p1 <- ggplot(top_duos, aes(x = movie_count, y = reorder(paste(Director, "&", Star1), movie_count), fill = Director)) +
+  geom_col() +
+  labs(title = "Top 5 Director & Actor Pairings", x = "Number of Movies Together", y = "Partnership") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggplotly(p1)
+
+```
+
+
+8. Do movies with the most votes have the highest ratings?
+```{r}
+
+p3 <- ggplot(my_data, aes(x = No_of_Votes, y = IMDB_Rating, text = Series_Title)) +
+  geom_point(alpha = 0.4, color = "black") +
+  geom_smooth(method = "lm", color = "red") + # Adds a trend line
+  labs(title = "Number of Votes vs. IMDB Rating", x = "Number of Votes", y = "IMDB Rating") +
+  theme_light()
+
+
+ggplotly(p3, tooltip = "text")
+
+```
+
+9. Has the "Golden Age" passed?  Average Ratings over the Decades.
+Does people rated older movie more or new ones
+```{r}
+# Cleaning years and grouping by Decade
+decade_trends <- my_data %>%
+  mutate(Year = as.numeric(gsub("[^0-9]", "", Released_Year))) %>%
+  filter(!is.na(Year)) %>%
+  mutate(Decade = (Year %/% 10) * 10) %>%
+  group_by(Decade) %>%
+  summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))
+
+# Line graph for trends
+p5 <- ggplot(decade_trends, aes(x = Decade, y = avg_rating)) +
+  geom_line(size = 1, color = "black") +
+  geom_point(size = 2) +
+  labs(title = "Average IMDB Rating by Decade", x = "Decade", y = "Average Rating") +
+  theme_minimal()
+
+ggplotly(p5)
+
+```
+
+10. Which 5 Directors have earned the most Total Gross?
+```{r}
+director_wealth <- my_data %>%
+  mutate(Gross_Clean = as.numeric(gsub(",", "", Gross))) %>%
+  filter(!is.na(Gross_Clean)) %>%
+  group_by(Director) %>%
+  summarise(
+    Total_Movies = n(),
+    Total_Gross_Millions = sum(Gross_Clean, na.rm = TRUE) / 1000000,
+    Average_IMDB = mean(IMDB_Rating, na.rm = TRUE)
+  ) %>%
+  arrange(desc(Total_Gross_Millions)) %>%
+  head(5)
+
+print(director_wealth)
+
+```
+
+11. What is the most common IMDB rating?
+```{r}
+library(ggplot2)
+library(plotly)
+
+
+# We use a binwidth of 0.1 because ratings are close  (8.1, 8.2, etc.)
+p_rating_hist <- ggplot(my_data, aes(x = IMDB_Rating)) +
+  geom_histogram(binwidth = 0.1, fill = "red", color = "black") +
+  labs(
+    title = "Distribution of IMDB Ratings",
+    x = "IMDB Rating",
+    y = "Number of Movies"
+  ) +
+  theme_minimal()
+
+
+ggplotly(p_rating_hist)
+
+```
+>>>>>>> e2ca0a63e1290033a50de5b6bbc631518800cd67
