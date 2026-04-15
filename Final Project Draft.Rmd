@@ -16,28 +16,35 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyr)
 library(tidyverse)
 library(readr)
-my_data <- read.csv("imdb_top_1000.csv")
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(priceR)            
 
+my_data <- read.csv("imdb_top_1000.csv")
 glimpse(my_data)
+
 ```
+# Data Cleaning: emo::ji("smile")
+
+```{r}
+my_data$Released_Year <- as.numeric(my_data$Released_Year )
+my_data$Gross <- as.numeric(my_data$Gross)
+my_data$Runtime <-as.numeric(my_data$Runtime)
+```
+
+
 ```{r}
 # What are the top 5 directors with the the highest movie rating?
 
-library(dplyr)
+ top_5_directors <- my_data %>%  
+   group_by(Director)%>%         
+   summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))%>% 
+   arrange(desc(avg_rating))%>%  
+   head(5)                     
+ print(top_5_directors)         
+p <- ggplot(top_5_directors, aes(x = Director, y = avg_rating, fill = Director)) + geom_col() + labs(title = "TOP 5 DIRECTORS BY AVERGAE RATING", x= "Director's name", y = "IMDB Average rating")       
 
- top_5_directors <- my_data %>% # here we rename the data set to the top 5 ones 
-   group_by(Director)%>%        # here we have to group by the directors coz this is what we want 
-   summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))%>% # then we have to summarize to the next variable that is the avg rating for the top 5 
-   arrange(desc(avg_rating))%>% # here we have to arrange the avg rating data in descending order 
-   head(5)                     # here we select the top whatever, like top 5 or top 10
- print(top_5_directors)         # here we print what the data set will look like 
- 
- library(ggplot2)               # here we have to open the plot library to make the plot 
- 
-p <- ggplot(top_5_directors, aes(x = Director, y = avg_rating, fill = Director)) + geom_col() + labs(title = "TOP 5 DIRECTORS BY AVERGAE RATING", x= "Director's name", y = "IMDB Average rating")        # at the beginning we make it p (plot) <- ggplot that way it can be used for the plotly tool  
-
-library(plotly)                 # here we open the plotly tool from the library 
-ggplotly(p)                     # and lastly here we apply the plotly tool to "p"
 ```
 1. What is the relationship between ratings and runtime?
 
@@ -115,29 +122,32 @@ ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
 
 
 ```{r}
-
-library(dplyr)
+country <- "US"
+inflation_dataframe <- retrieve_inflation_data(country)
+countries_dataframe <- show_countries()
 
 decade_gross <- my_data %>%
-
-  mutate(Gross = as.numeric(gsub("[^0-9]", "", Gross))) %>%
-  mutate(Released_Year = as.numeric(gsub("[^0-9]", "", Released_Year))) %>%
-  mutate(Decade = (Released_Year %/% 10) * 10) %>%
+  mutate(adjusted_gross = adjust_for_inflation(parse_number(Gross), as.numeric(Released_Year), country, to_date = 2024), 
+         Decade = (as.numeric(Released_Year) %/% 10) * 10) %>%
   filter(!is.na(Decade), !is.na(Gross)) %>%
-  group_by(Decade) %>%
-  summarize(
-    Average_Gross = mean(Gross, na.rm = TRUE),
-    Movie_Count = n()
-  ) %>%
-  arrange(Decade)
+  group_by(Decade)
+# 
+# %>%
+#   summarize(
+#     Average_Gross = mean(Gross, na.rm = TRUE),
+#     Average_adjusted_gross = mean(adjusted_gross, na.rm = TRUE),
+#     Movie_Count = n(),
+#     .groups = "drop"
+#   ) 
 
-print(decade_gross)
+decade_gross$Gross
+decade_gross$adjusted_gross
 
-library(ggplot2)
-l <- ggplot(decade_gross, aes(x = Decade, y = Average_Gross)) + geom_line()+geom_point()
-library(plotly)
+ggplot(decade_gross, aes(x = Decade, y = Average_Gross)) + geom_line()+geom_point()
 ggplotly(l)
 ```
+ 
+
 
 3. Which genre produces the most highly-rated movies (rating > 8.5)?
 
@@ -165,5 +175,9 @@ ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
     x = "Genre",
     y = "Count of Movies"
   )
+```
+
+```{r}
+
 ```
 
