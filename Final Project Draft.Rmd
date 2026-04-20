@@ -169,6 +169,7 @@ ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
 ```
 
 # What is the Average box office gross by decade and adjusted inflation gross by decade (Joseph Godinez)
+
 ```{r}
 
 decade_gross <- my_data %>%
@@ -196,8 +197,8 @@ decade_long <- decade_gross%>%
 ggplot(decade_long, aes(x= Decade, y = Gross, colour  =Type))+ geom_line(linewidth = 1.0)+ geom_point(size =3) + labs( title = "Average box office by decade", subtitle = "Nominal vs. Inflation-Adjsuted to 2024 USD", x = "Decade", y = "Average Gross (Millions USD",) + theme_minimal()
 ```
 
-
 # Top 10 Director & Lead Actor Pairs among Top 1000 IMDB Rated Movies (Joseph Godinez)
+
 ```{r}
 pair_data <- my_data %>%
   group_by(Director, Star1) %>%
@@ -216,6 +217,7 @@ ggplot(pair_data, aes(x = reorder(Pair, Movie_Count), y = Movie_Count, fill = Mo
 
 ```
 
+
 #How does the distribution of ratings compare across decades? (Joseph Godinez)
 ```{r}
 decade_data <- my_data %>%
@@ -224,4 +226,3 @@ ggplot(decade_data, aes(x = Decade, y = IMDB_Rating, fill = Decade)) +
   geom_violin()
   labs(title = "Distribution of IMDB Ratings Across Decades", x = "Decade", y = "IMDB Rating") + theme_minimal(base_size = 13)
 ```
-
