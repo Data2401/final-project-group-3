@@ -2,7 +2,7 @@
 title: "Project Draft workshop"
 author: "Joseph G., Barbara S."
 date: "2026-04-08"
-output: ioslides_presentation
+output: slidy_presentation
 ---
 
 ```{r setup, include=FALSE}
