@@ -17,6 +17,7 @@ library(dplyr)
 library(ggplot2)
 library(plotly)
 library(priceR)
+library(kableExtra)
 
 my_data <- read.csv("imdb_top_1000.csv")
 glimpse(my_data)
@@ -41,15 +42,21 @@ my_data$Released_Year <- as.numeric(my_data$Released_Year)
 ```
 
 ```{r}
-# What are the top 5 directors with the the highest movie rating?
+# What are the top 5 directors with the the highest movie rating? Joseph Godinez
 
  top_5_directors <- my_data %>%  
    group_by(Director)%>%         
    summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))%>% 
    arrange(desc(avg_rating))%>%  
-   head(5)                     
+   head(5)%>% 
+mutate(Rank = row_number(), avg_rating = round(avg_rating, 2))%>%
+  select(Rank, Director, avg_rating)
+top_5_directors%>%
+  kable(col.names = c("Rank", "Director", "Avg IMDB Rating"), align = c("c", "l", "c"))%>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, position = "center")%>%
+  
  print(top_5_directors)         
-p <- ggplot(top_5_directors, aes(x = Director, y = avg_rating, fill = Director)) + geom_col() + labs(title = "TOP 5 DIRECTORS BY AVERGAE RATING", x= "Director's name", y = "IMDB Average rating")       
+      
 
 ```
 
@@ -80,19 +87,24 @@ ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
 ```
 
 ```{r}
-# Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. 
+# Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. Joseph Godinez
 
-library(dplyr)
 top_actors <- my_data%>%
   group_by(Star1)%>%
   summarise(Movie_count = n())%>%
   arrange(desc(Movie_count))%>%
-  head(10)
+  head(10)%>%
+  mutate(Rank = row_number(), Percentage = paste0(round(Movie_count / nrow(my_data)*100, 1), "%"))%>%
+  select(Rank, Star1, Movie_count, Percentage)
+top_actors%>%
+  kable(col.names = c("Rank", "Actor", "Movies in Dataser", "% in Dataset"), align = c("c", "l", "c", "c"))%>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, position = "center")%>%
+  
+
 print(top_actors)
 
-library(ggplot2)
 g <- ggplot(top_actors, aes(x = Star1, y = Movie_count, fill = Star1)) + geom_col() +labs(title = "Top 5 lead actors and how many time they appear in the data set", x = "Lead actor's name", y = "Amount of times they appear in the dataset" )
-library(plotly)
+
 ggplotly(g)
 ```
 
@@ -125,29 +137,7 @@ ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
 ```
 
 ```{r}
-country <- "US"
-inflation_dataframe <- retrieve_inflation_data(country)
-countries_dataframe <- show_countries()
 
-decade_gross <- my_data %>%
-  mutate(adjusted_gross = adjust_for_inflation(parse_number(Gross), as.numeric(Released_Year), country, to_date = 2024), 
-         Decade = (as.numeric(Released_Year) %/% 10) * 10) %>%
-  filter(!is.na(Decade), !is.na(Gross)) %>%
-  group_by(Decade)
-# 
-# %>%
-#   summarize(
-#     Average_Gross = mean(Gross, na.rm = TRUE),
-#     Average_adjusted_gross = mean(adjusted_gross, na.rm = TRUE),
-#     Movie_Count = n(),
-#     .groups = "drop"
-#   ) 
-
-decade_gross$Gross
-decade_gross$adjusted_gross
-
-ggplot(decade_gross, aes(x = Decade, y = Average_Gross)) + geom_line()+geom_point()
-ggplotly(l)
 ```
 
 3.  Which genre produces the most highly-rated movies (rating \> 8.5)?
@@ -178,6 +168,7 @@ ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
   )
 ```
 
+# What is the Average box office gross by decade and adjusted inflation gross by decade (Joseph Godinez)
 ```{r}
 
 decade_gross <- my_data %>%
@@ -203,5 +194,34 @@ decade_long <- decade_gross%>%
                       "Average_Gross" = "Nominal Gross", "Average_Adjusted_Gross" = "Ajusted Gross (2024)" ))
 
 ggplot(decade_long, aes(x= Decade, y = Gross, colour  =Type))+ geom_line(linewidth = 1.0)+ geom_point(size =3) + labs( title = "Average box office by decade", subtitle = "Nominal vs. Inflation-Adjsuted to 2024 USD", x = "Decade", y = "Average Gross (Millions USD",) + theme_minimal()
+```
+
+
+# Top 10 Director & Lead Actor Pairs among Top 1000 IMDB Rated Movies (Joseph Godinez)
+```{r}
+pair_data <- my_data %>%
+  group_by(Director, Star1) %>%
+  summarise(Movie_Count = n(), .groups = "drop") %>%
+  slice_max(Movie_Count, n = 10) %>%
+  mutate(Pair = paste(Director, "+", Star1))
+
+ggplot(pair_data, aes(x = reorder(Pair, Movie_Count), y = Movie_Count, fill = Movie_Count)) +
+  geom_col(width = 0.5) +  geom_text(aes(label = paste(Movie_Count, "films")), hjust = -0.2, size = 3.5) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.3))) + labs(title = "Top 10 Director & Lead Actor Pairs",
+    subtitle = "Among Top 1000 IMDB Rated Movies",
+    x = NULL,
+    y = "Number of Movies Together"
+  ) +theme_minimal(base_size = 12)
+
+```
+
+#How does the distribution of ratings compare across decades? (Joseph Godinez)
+```{r}
+decade_data <- my_data %>%
+  mutate(Decade = paste0((Released_Year %/% 10) * 10, "s"))  # turns 1990 into "1990s"
+ggplot(decade_data, aes(x = Decade, y = IMDB_Rating, fill = Decade)) +
+  geom_violin()
+  labs(title = "Distribution of IMDB Ratings Across Decades", x = "Decade", y = "IMDB Rating") + theme_minimal(base_size = 13)
 ```
 
