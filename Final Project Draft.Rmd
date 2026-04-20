@@ -1,8 +1,8 @@
 ---
 title: "Project Draft workshop"
-author: "Joseph G., Barbara S., Rakendra S"
+author: "Joseph G., Barbara S."
 date: "2026-04-08"
-output: html_document
+output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
@@ -41,10 +41,6 @@ my_data$Released_Year <- as.numeric(my_data$Released_Year)
 
 ```
 
-<<<<<<< HEAD
-
-2. What is the relationship between ratings and runtime?
-=======
 ```{r}
 # What are the top 5 directors with the the highest movie rating? Joseph Godinez
 
@@ -65,7 +61,6 @@ top_5_directors%>%
 ```
 
 1.  What is the relationship between ratings and runtime?
->>>>>>> f70753c5582887dd423856631e6318c540cbe129
 
 ```{r}
 
@@ -90,12 +85,6 @@ ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
     y = "Meta_score"
   )
 ```
-<<<<<<< HEAD
-
-
-3. Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. 
-=======
->>>>>>> f70753c5582887dd423856631e6318c540cbe129
 
 ```{r}
 # Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. Joseph Godinez
@@ -183,56 +172,10 @@ ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
 
 ```{r}
 
-<<<<<<< HEAD
-p3 <- ggplot(my_data, aes(x = No_of_Votes, y = IMDB_Rating, text = Series_Title)) +
-  geom_point(alpha = 0.4, color = "black") +
-  geom_smooth(method = "lm", color = "red") + 
-  labs(title = "Number of Votes vs. IMDB Rating", x = "Number of Votes", y = "IMDB Rating") +
-  theme_light()
-
-
-ggplotly(p3, tooltip = "text")
-
-```
-
-9. Has the "Golden Age" passed?  Average Ratings over the Decades.
-Does people rated older movie more or new ones
-```{r}
-# Cleaning years and grouping by Decade
-decade_trends <- my_data %>%
-  mutate(Year = as.numeric(gsub("[^0-9]", "", Released_Year))) %>%
-  filter(!is.na(Year)) %>%
-  mutate(Decade = (Year %/% 10) * 10) %>%
-  group_by(Decade) %>%
-  summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))
-
-# Line graph for trends
-p5 <- ggplot(decade_trends, aes(x = Decade, y = avg_rating)) +
-  geom_line(size = 1, color = "black") +
-  geom_point(size = 2) +
-  labs(title = "Average IMDB Rating by Decade", x = "Decade", y = "Average Rating") +
-  theme_minimal()
-
-ggplotly(p5)
-
-```
-
-10. Which 5 Directors have earned the most Total Gross?
-```{r}
-director_wealth <- my_data %>%
-  mutate(Gross_Clean = as.numeric(gsub(",", "", Gross))) %>%
-  filter(!is.na(Gross_Clean)) %>%
-  group_by(Director) %>%
-  summarise(
-    Total_Movies = n(),
-    Total_Gross_Millions = sum(Gross_Clean, na.rm = TRUE) / 1000000,
-    Average_IMDB = mean(IMDB_Rating, na.rm = TRUE)
-=======
 decade_gross <- my_data %>%
   mutate(
     adjusted_gross = adjust_for_inflation(Gross, Released_Year, "US", to_date = 2024),
     Decade = (Released_Year %/% 10) * 10
->>>>>>> f70753c5582887dd423856631e6318c540cbe129
   ) %>%
   group_by(Decade) %>%
   summarise(
@@ -274,34 +217,12 @@ ggplot(pair_data, aes(x = reorder(Pair, Movie_Count), y = Movie_Count, fill = Mo
 
 ```
 
-
 #How does the distribution of ratings compare across decades? (Joseph Godinez)
+
 ```{r}
-<<<<<<< HEAD
-library(ggplot2)
-library(plotly)
-
-
-# We use a binwidth of 0.1 because ratings are close  (8.1, 8.2, etc.)
-p_rating_hist <- ggplot(my_data, aes(x = IMDB_Rating)) +
-  geom_histogram(binwidth = 0.1, fill = "red", color = "black") +
-  labs(
-    title = "Distribution of IMDB Ratings",
-    x = "IMDB Rating",
-    y = "Number of Movies"
-  ) +
-  theme_minimal()
-
-
-ggplotly(p_rating_hist)
-
-```
-
-=======
 decade_data <- my_data %>%
   mutate(Decade = paste0((Released_Year %/% 10) * 10, "s"))  # turns 1990 into "1990s"
 ggplot(decade_data, aes(x = Decade, y = IMDB_Rating, fill = Decade)) +
   geom_violin()
   labs(title = "Distribution of IMDB Ratings Across Decades", x = "Decade", y = "IMDB Rating") + theme_minimal(base_size = 13)
 ```
->>>>>>> f70753c5582887dd423856631e6318c540cbe129
