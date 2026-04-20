@@ -1,6 +1,6 @@
 ---
 title: "Project Draft workshop"
-author: "Joseph G., Barbara S., Rakendra S"
+author: "Joseph G., Barbara S., Rakendra S."
 date: "2026-04-08"
 output: slidy_presentation
 ---
@@ -8,6 +8,9 @@ output: slidy_presentation
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+##
+Libraries needed for this Project and Raw data set 
 
 ```{r}
 library(tidyr)
@@ -24,9 +27,10 @@ glimpse(my_data)
 
 ```
 
-# Data Cleaning:
+##
+Data Cleaning:
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 # Converting character variables to numeric variables
 
 my_data$Runtime <-as.numeric(my_data$Runtime)
@@ -37,9 +41,10 @@ glimpse(my_data)
 
 ```
 
-```{r}
-# What are the top 5 directors with the the highest movie rating? Joseph Godinez
+##
+What are the top 5 directors with the the highest movie rating? Joseph Godinez
 
+```{r, warning = FALSE, message = FALSE}
  top_5_directors <- my_data %>%  
    group_by(Director)%>%         
    summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))%>% 
@@ -49,42 +54,14 @@ mutate(Rank = row_number(), avg_rating = round(avg_rating, 2))%>%
   select(Rank, Director, avg_rating)
 top_5_directors%>%
   kable(col.names = c("Rank", "Director", "Avg IMDB Rating"), align = c("c", "l", "c"))%>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, position = "center")%>%
-  
- print(top_5_directors)         
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, position = "center")
       
-
 ```
 
-1.  What is the relationship between ratings and runtime?
+##
+Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. (Joseph Godinez)
 
-```{r}
-
-my_data <- my_data%>%
-  mutate(Runtime = as.numeric(gsub(" min", "", Runtime)))
-  
-ggplot(my_data, aes(x = Runtime, y = IMDB_Rating)) +
-  geom_point(alpha = 0.6) +
-  labs(
-    title = "People's Rating vs Runtime",
-    x = "Runtime",
-    y = "IMDb Rating"
-  )
-```
-
-```{r}
-ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
-  geom_point(alpha = 0.6) +
-  labs(
-    title = "Critics Score vs Runtime",
-    x = "Runtime",
-    y = "Meta_score"
-  )
-```
-
-```{r}
-# Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. Joseph Godinez
-
+```{r, warning = FALSE, message = FALSE}
 top_actors <- my_data%>%
   group_by(Star1)%>%
   summarise(Movie_count = n())%>%
@@ -94,79 +71,17 @@ top_actors <- my_data%>%
   select(Rank, Star1, Movie_count, Percentage)
 top_actors%>%
   kable(col.names = c("Rank", "Actor", "Movies in Dataser", "% in Dataset"), align = c("c", "l", "c", "c"))%>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, position = "center")%>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, position = "center")
   
-
-print(top_actors)
-
 g <- ggplot(top_actors, aes(x = Star1, y = Movie_count, fill = Star1)) + geom_col() +labs(title = "Top 5 lead actors and how many time they appear in the data set", x = "Lead actor's name", y = "Amount of times they appear in the dataset" )
 
 ggplotly(g)
 ```
 
-2.  Which genres tend to have the longest runtime?
+##
+What is the Average box office gross by decade and adjusted inflation gross by decade (Joseph Godinez)
 
-```{r}
-my_data <- my_data %>%
-  mutate(Runtime = as.numeric(gsub("[^0-9]", "", Runtime)))
-
-my_data_genre <- my_data %>%
-  separate_rows(Genre, sep = ", ")
-
-genre_runtime <- my_data_genre %>%
-  group_by(Genre) %>%
-  summarize(avg_runtime = mean(Runtime, na.rm = TRUE)) %>%
-  arrange(desc(avg_runtime))
-
-head(genre_runtime)
-```
-
-```{r}
-ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
-  geom_col() +
-  coord_flip() +
-  labs(
-    title = "Average Runtime by Genre",
-    x = "Genre",
-    y = "Average Runtime (minutes)"
-  )
-```
-
-```{r}
-
-```
-
-3.  Which genre produces the most highly-rated movies (rating \> 8.5)?
-
-```{r}
-high_rated <- my_data %>%
-  filter(IMDB_Rating > 8.5)
-
-high_rated_genre <- high_rated %>%
-  separate_rows(Genre, sep = ", ")
-
-genre_counts <- high_rated_genre %>%
-  group_by(Genre) %>%
-  summarize(count = n()) %>%
-  arrange(desc(count))
-
-head(genre_counts)
-```
-
-```{r}
-ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
-  geom_col() +
-  coord_flip() +
-  labs(
-    title = "Number of Highly Rated Movies (IMDb > 8.5) by Genre",
-    x = "Genre",
-    y = "Count of Movies"
-  )
-```
-
-# What is the Average box office gross by decade and adjusted inflation gross by decade (Joseph Godinez)
-
-```{r}
+```{r, warning = FALSE, message = FALSE}
 
 decade_gross <- my_data %>%
   mutate(
@@ -179,8 +94,8 @@ decade_gross <- my_data %>%
     Average_Adjusted_Gross = mean(adjusted_gross, na.rm = TRUE),
     .groups = "drop"
   )
-print(decade_gross)
 
+print(decade_gross)
 decade_long <- decade_gross%>%
   pivot_longer(
     cols = c(Average_Gross, Average_Adjusted_Gross), 
@@ -190,12 +105,13 @@ decade_long <- decade_gross%>%
   mutate(Type =recode(Type, 
                       "Average_Gross" = "Nominal Gross", "Average_Adjusted_Gross" = "Ajusted Gross (2024)" ))
 
-ggplot(decade_long, aes(x= Decade, y = Gross, colour  =Type))+ geom_line(linewidth = 1.0)+ geom_point(size =3) + labs( title = "Average box office by decade", subtitle = "Nominal vs. Inflation-Adjsuted to 2024 USD", x = "Decade", y = "Average Gross (Millions USD",) + theme_minimal()
+ggplot(decade_long, aes(x= Decade, y = Gross, colour  =Type))+ geom_line(linewidth = 1.0)+ geom_point(size =3) + labs( title = "Average box office by decade", subtitle = "Nominal vs. Inflation-Adjsuted to 2024 USD", x = "Decade", y = "Average Gross (Millions USD") + theme_minimal()
 ```
 
-# Top 10 Director & Lead Actor Pairs among Top 1000 IMDB Rated Movies (Joseph Godinez)
+##
+Top 10 Director & Lead Actor Pairs among Top 1000 IMDB Rated Movies (Joseph Godinez)
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 pair_data <- my_data %>%
   group_by(Director, Star1) %>%
   summarise(Movie_Count = n(), .groups = "drop") %>%
@@ -213,9 +129,10 @@ ggplot(pair_data, aes(x = reorder(Pair, Movie_Count), y = Movie_Count, fill = Mo
 
 ```
 
-#How does the distribution of ratings compare across decades? (Joseph Godinez)
+##
+How does the distribution of ratings compare across decades? (Joseph Godinez)
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 decade_data <- my_data %>%
   mutate(Decade = paste0((Released_Year %/% 10) * 10, "s")) %>%
 group_by(Decade) %>%
@@ -226,9 +143,99 @@ ggplot(decade_data, aes(x = Decade, y = IMDB_Rating, fill = Decade)) +
   geom_violin() + labs(title = "Distribution of IMDB Ratings Across Decades", x = "Decade", y = "IMDB Rating") + theme_minimal(base_size = 13)
 ```
 
+##
+What is the relationship between ratings and runtime?
 
-7. Which Director and Lead Actor work together most often?
-```{r}
+```{r, warning = FALSE, message = FALSE}
+
+my_data <- my_data%>%
+  mutate(Runtime = as.numeric(gsub(" min", "", Runtime)))
+  
+ggplot(my_data, aes(x = Runtime, y = IMDB_Rating)) +
+  geom_point(alpha = 0.6) +
+  labs(
+    title = "People's Rating vs Runtime",
+    x = "Runtime",
+    y = "IMDb Rating"
+  )
+```
+
+```{r, warning = FALSE, message = FALSE}
+ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
+  geom_point(alpha = 0.6) +
+  labs(
+    title = "Critics Score vs Runtime",
+    x = "Runtime",
+    y = "Meta_score"
+  )
+```
+
+
+
+2.  Which genres tend to have the longest runtime?
+
+```{r, warning = FALSE, message = FALSE}
+my_data <- my_data %>%
+  mutate(Runtime = as.numeric(gsub("[^0-9]", "", Runtime)))
+
+my_data_genre <- my_data %>%
+  separate_rows(Genre, sep = ", ")
+
+genre_runtime <- my_data_genre %>%
+  group_by(Genre) %>%
+  summarize(avg_runtime = mean(Runtime, na.rm = TRUE)) %>%
+  arrange(desc(avg_runtime))
+
+head(genre_runtime)
+```
+
+```{r, warning = FALSE, message = FALSE}
+ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Average Runtime by Genre",
+    x = "Genre",
+    y = "Average Runtime (minutes)"
+  )
+```
+
+##
+3.  Which genre produces the most highly-rated movies (rating \> 8.5)?
+
+```{r, warning = FALSE, message = FALSE}
+high_rated <- my_data %>%
+  filter(IMDB_Rating > 8.5)
+
+high_rated_genre <- high_rated %>%
+  separate_rows(Genre, sep = ", ")
+
+genre_counts <- high_rated_genre %>%
+  group_by(Genre) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+head(genre_counts)
+```
+
+```{r, warning = FALSE, message = FALSE}
+ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Number of Highly Rated Movies (IMDb > 8.5) by Genre",
+    x = "Genre",
+    y = "Count of Movies"
+  )
+```
+
+
+
+
+
+##
+7. Which Director and Lead Actor work together most often? (Rakendra S.)
+```{r, warning = FALSE, message = FALSE}
 # Finding the most frequent pairings
 top_duos <- my_data %>%
   group_by(Director, Star1) %>%
@@ -247,9 +254,9 @@ ggplotly(p1)
 
 ```
 
-
-8. Do movies with the most votes have the highest ratings?
-```{r}
+##
+8. Do movies with the most votes have the highest ratings? (Rakendra S.)
+```{r, warning = FALSE, message = FALSE}
 
 p3 <- ggplot(my_data, aes(x = No_of_Votes, y = IMDB_Rating, text = Series_Title)) +
   geom_point(alpha = 0.4, color = "black") +
@@ -262,9 +269,10 @@ ggplotly(p3, tooltip = "text")
 
 ```
 
+##
 9. Has the "Golden Age" passed?  Average Ratings over the Decades.
-Does people rated older movie more or new ones
-```{r}
+Does people rated older movie more or new ones (Rakendra S.)
+```{r, warning = FALSE, message = FALSE}
 # Cleaning years and grouping by Decade
 decade_trends <- my_data %>%
   mutate(Year = as.numeric(gsub("[^0-9]", "", Released_Year))) %>%
@@ -284,8 +292,9 @@ ggplotly(p5)
 
 ```
 
-10. Which 5 Directors have earned the most Total Gross?
-```{r}
+##
+10. Which 5 Directors have earned the most Total Gross? (Rakendra S.)
+```{r, warning = FALSE, message = FALSE}
 director_wealth <- my_data %>%
   mutate(Gross_Clean = as.numeric(gsub(",", "", Gross))) %>%
   filter(!is.na(Gross_Clean)) %>%
@@ -302,11 +311,9 @@ print(director_wealth)
 
 ```
 
-11. What is the most common IMDB rating?
-```{r}
-library(ggplot2)
-library(plotly)
-
+##
+11. What is the most common IMDB rating? (Rakendra S.)
+```{r, warning = FALSE, message = FALSE}
 
 # We use a binwidth of 0.1 because ratings are close  (8.1, 8.2, etc.)
 p_rating_hist <- ggplot(my_data, aes(x = IMDB_Rating)) +
