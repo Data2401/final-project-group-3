@@ -1,5 +1,5 @@
 ---
-title: "Project Draft workshop"
+title: "Final Project - Top 1000 Movies by IMDB Rating"
 author: "Joseph G., Barbara S., Rakendra S."
 date: "2026-04-08"
 output: slidy_presentation
