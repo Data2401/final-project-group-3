@@ -40,6 +40,8 @@ p <- ggplot(top_5_directors, aes(x = Director, y = avg_rating, fill = Director))
 library(plotly)                 # here we open the plotly tool from the library 
 ggplotly(p)                     # and lastly here we apply the plotly tool to "p"
 ```
+
+
 2. What is the relationship between ratings and runtime?
 
 ```{r}
@@ -66,6 +68,8 @@ ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
     y = "Meta_score"
   )
 ```
+
+
 3. Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking. 
 
 ```{r}
@@ -193,7 +197,7 @@ ggplotly(p1)
 
 p3 <- ggplot(my_data, aes(x = No_of_Votes, y = IMDB_Rating, text = Series_Title)) +
   geom_point(alpha = 0.4, color = "black") +
-  geom_smooth(method = "lm", color = "red") + # Adds a trend line
+  geom_smooth(method = "lm", color = "red") + 
   labs(title = "Number of Votes vs. IMDB Rating", x = "Number of Votes", y = "IMDB Rating") +
   theme_light()
 
@@ -262,3 +266,4 @@ p_rating_hist <- ggplot(my_data, aes(x = IMDB_Rating)) +
 ggplotly(p_rating_hist)
 
 ```
+
