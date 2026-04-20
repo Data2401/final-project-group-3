@@ -105,7 +105,9 @@ decade_long <- decade_gross%>%
   mutate(Type =recode(Type, 
                       "Average_Gross" = "Nominal Gross", "Average_Adjusted_Gross" = "Ajusted Gross (2024)" ))
 
-ggplot(decade_long, aes(x= Decade, y = Gross, colour  =Type))+ geom_line(linewidth = 1.0)+ geom_point(size =3) + labs( title = "Average box office by decade", subtitle = "Nominal vs. Inflation-Adjsuted to 2024 USD", x = "Decade", y = "Average Gross (Millions USD") + theme_minimal()
+g <- ggplot(decade_long, aes(x= Decade, y = Gross, colour  =Type))+ geom_line(linewidth = 1.0)+ geom_point(size =3) + labs( title = "Average box office by decade", subtitle = "Nominal vs. Inflation-Adjsuted to 2024 USD", x = "Decade", y = "Average Gross (Millions USD") + theme_minimal()
+
+ggplotly(g)
 ```
 
 ##
