@@ -1,0 +1,71 @@
+---
+title: "Final Project - Top 1000 Movies by IMDb Rating"
+author: "Joseph G., Barbara S., Rakendra S."
+date: "2026-04-08"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
+
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(plotly)
+library(kableExtra)
+library(priceR)
+
+set.seed(42)
+```
+
+# Introduction
+
+This project analyzes the IMDb Top 1000 Movies dataset. The goal is to explore what patterns appear among highly rated movies, including which directors and actors appear most often, how movie ratings compare across decades, and how factors such as genre, runtime, votes, and box office gross relate to IMDb ratings.
+
+Rather than only listing plots and tables, this report uses exploratory data analysis to build a story about what makes these top-ranked movies stand out.
+
+# Data & Methods
+
+The dataset was imported from a CSV file named imdb_top_1000.csv. It contains information about highly rated movies, including title, release year, runtime, genre, director, actors, IMDb rating, meta score, number of votes, and gross earnings.
+
+```{r}
+my_data <- read.csv("imdb_top_1000.csv")
+
+Before analyzing the data, several columns needed to be cleaned. The Runtime column contained text such as "142 min", so the word "min" was removed and the values were converted to numeric. The Gross column included commas and non-numeric characters, so those were removed before converting gross revenue to numeric. The release year was also converted to numeric so it could be grouped by decade.
+
+my_data <- my_data %>%
+  mutate(
+    Runtime = as.numeric(gsub("[^0-9]", "", Runtime)),
+    Gross = as.numeric(gsub("[^0-9.]", "", Gross)),
+    Released_Year = as.numeric(gsub("[^0-9]", "", Released_Year))
+  )
+```
+  
+  After cleaning, the dataset contains r nrow(my_data) movies and r ncol(my_data) variables. Some missing values remain, especially in columns such as gross revenue and meta score, so calculations use na.rm = TRUE when appropriate.
+
+# Exploratory Data Analysis
+
+## Most Common IMDb Ratings
+
+We first looked at the distribution of IMDb ratings to understand how ratings are spread across the top 1000 movies.
+
+```{r}
+p_rating_hist <- ggplot(my_data, aes(x = IMDB_Rating)) +
+  geom_histogram(binwidth = 0.1, fill = "red", color = "black") +
+  labs(
+    title = "Distribution of IMDb Ratings",
+    x = "IMDb Rating",
+    y = "Number of Movies"
+  ) +
+  theme_minimal()
+
+ggplotly(p_rating_hist)
+```
+
+
