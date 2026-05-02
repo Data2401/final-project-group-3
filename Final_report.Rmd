@@ -37,7 +37,7 @@ The dataset was imported from a CSV file named imdb_top_1000.csv. It contains in
 ```{r}
 my_data <- read.csv("imdb_top_1000.csv")
 
-Before analyzing the data, several columns needed to be cleaned. The Runtime column contained text such as "142 min", so the word "min" was removed and the values were converted to numeric. The Gross column included commas and non-numeric characters, so those were removed before converting gross revenue to numeric. The release year was also converted to numeric so it could be grouped by decade.
+#Before analyzing the data, several columns needed to be cleaned. The Runtime column contained text such as "142 min", so the word "min" was removed and the values were converted to numeric. The Gross column included commas and non-numeric characters, so those were removed before converting gross revenue to numeric. The release year was also converted to numeric so it could be grouped by decade.
 
 my_data <- my_data %>%
   mutate(
@@ -56,16 +56,139 @@ my_data <- my_data %>%
 We first looked at the distribution of IMDb ratings to understand how ratings are spread across the top 1000 movies.
 
 ```{r}
+# We use a binwidth of 0.1 because ratings are close  (8.1, 8.2, etc.)
 p_rating_hist <- ggplot(my_data, aes(x = IMDB_Rating)) +
   geom_histogram(binwidth = 0.1, fill = "red", color = "black") +
   labs(
-    title = "Distribution of IMDb Ratings",
-    x = "IMDb Rating",
+    title = "Distribution of IMDB Ratings",
+    x = "IMDB Rating",
     y = "Number of Movies"
   ) +
   theme_minimal()
 
+
 ggplotly(p_rating_hist)
+
 ```
+
+##. Which Director and Lead Actor work together most often? 
+
+This analysis identifies the most frequent collaborations between directors and their lead actors in the dataset.
+
+```{r}
+
+top_duos <- my_data %>%
+  group_by(Director, Star1) %>%
+  summarise(movie_count = n(), .groups = "drop") %>%
+  arrange(desc(movie_count)) %>%
+  head(5)
+
+p1 <- ggplot(top_duos, aes(
+  x = movie_count,
+  y = reorder(paste(Director, "&", Star1), movie_count),
+  fill = Director
+)) +
+  geom_col() +
+  labs(
+    title = "Top 5 Director & Actor Pairings",
+    x = "Number of Movies Together",
+    y = "Partnership"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggplotly(p1)
+```
+The results show that Akira Kurosawa & Toshirō Mifune have the strongest collaboration, appearing together in 7 films, making them the most frequent director–actor pair. This is followed by Martin Scorsese & Robert De Niro, who worked together in 6 films, indicating another well-established partnership.
+
+Interestingly, Charlie Chaplin appears as both director and lead actor in 6 films, reflecting his unique role as a filmmaker who frequently starred in his own work.
+
+## Do movies with the most votes have the highest ratings? 
+ 
+This analysis examines whether movies with more audience votes also receive higher IMDb ratings.
+
+```{r, warning = FALSE, message = FALSE}
+
+p3 <- ggplot(my_data, aes(x = No_of_Votes, y = IMDB_Rating, text = Series_Title)) +
+  geom_point(alpha = 0.5, color = "black") +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.8, color = "red") +
+  labs(
+    title = "Number of Votes and IMDb Rating",
+    subtitle = "Relationship between audience popularity and perceived movie quality",
+    x = "Number of Votes",
+    y = "IMDb Rating",
+    color = "Film",
+    caption = "Data: IMDb Top 1000 Movies Dataset"
+  ) +
+  theme_minimal()
+
+ggplotly(p3, tooltip = "text")
+```
+
+The scatterplot shows that highly voted films such as The Shawshank Redemption, The Dark Knight, and Inception cluster in the 7–9 rating range, indicating that popular movies are generally well-rated. However, they are not always the highest-rated films.
+
+For example, movies like 12 Angry Men and The Godfather achieve very high ratings despite having relatively fewer votes compared to blockbuster films. These act as exceptions, showing that critically acclaimed films may not always have the largest audience reach.
+
+##
+9. Has the "Golden Age" passed?  Average Ratings over the Decades.
+Does people rated older movie more or new ones (Rakendra S.)
+```{r, warning = FALSE, message = FALSE}
+# Cleaning years and grouping by Decade
+decade_trends <- my_data %>%
+  mutate(Year = as.numeric(gsub("[^0-9]", "", Released_Year))) %>%
+  filter(!is.na(Year)) %>%
+  mutate(Decade = (Year %/% 10) * 10) %>%
+  group_by(Decade) %>%
+  summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))
+
+# Line graph for trends
+p5 <- ggplot(decade_trends, aes(x = Decade, y = avg_rating)) +
+  geom_line(size = 1, color = "black") +
+  geom_point(size = 2) +
+  labs(title = "Average IMDB Rating by Decade", x = "Decade", y = "Average Rating") +
+  theme_minimal()
+
+ggplotly(p5)
+
+```
+
+## Which 5 Directors have earned the most Total Gross? 
+
+This analysis identifies the directors with the highest total box office earnings across all their films in the dataset.
+ 
+```{r, warning = FALSE, message = FALSE}
+director_wealth <- my_data %>%
+  mutate(Gross_Clean = as.numeric(gsub(",", "", Gross))) %>%
+  filter(!is.na(Gross_Clean)) %>%
+  group_by(Director) %>%
+  summarise(
+    Total_Movies = n(),
+    Total_Gross_Millions = sum(Gross_Clean, na.rm = TRUE) / 1000000,
+    Average_IMDB = mean(IMDB_Rating, na.rm = TRUE)
+  ) %>%
+  arrange(desc(Total_Gross_Millions)) %>%
+  head(5)
+
+director_wealth %>%
+  rename(
+    `Total Movies` = Total_Movies,
+    `Total Gross (Millions)` = Total_Gross_Millions,
+    `Average IMDB Rating` = Average_IMDB
+  ) %>%
+  knitr::kable(
+    caption = "Top 5 Directors by Total Gross Revenue. A small group of directors dominate box office earnings."
+  ) %>%
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  )
+```
+
+The results show that Steven Spielberg and Christopher Nolan rank among the top directors by total gross revenue, driven by multiple high-earning films. These directors consistently produce commercially successful movies that contribute significantly to their overall earnings.
+
+Other top performers include Peter Jackson, known for large-scale franchise films, and James Cameron, whose blockbuster productions generate extremely high global revenue.
+
+
+
 
 
