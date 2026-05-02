@@ -110,7 +110,7 @@ This analysis examines whether movies with more audience votes also receive high
 ```{r, warning = FALSE, message = FALSE}
 
 p3 <- ggplot(my_data, aes(x = No_of_Votes, y = IMDB_Rating, text = Series_Title)) +
-  geom_point(alpha = 0.5, color = "black") +
+  geom_point(alpha = 0.5, color = "green") +
   geom_smooth(method = "lm", se = FALSE, linewidth = 0.8, color = "red") +
   labs(
     title = "Number of Votes and IMDb Rating",
@@ -151,6 +151,12 @@ p5 <- ggplot(decade_trends, aes(x = Decade, y = avg_rating)) +
 ggplotly(p5)
 
 ```
+
+
+The line plot shows that average ratings fluctuate across decades rather than following a clear upward or downward trend. Some decades appear slightly higher and then it falls, but the differences are relatively small overall as the ratings are very close.
+
+This suggests that there is  strong evidence of a consistent “Golden Age” of cinema in terms of IMDb ratings. Instead, each decade contains a mix of highly rated and lower rated films, and the average is not that much influenced by a few standout movies than a systematic change in quality over time.
+
 
 ## Which 5 Directors have earned the most Total Gross? 
 
