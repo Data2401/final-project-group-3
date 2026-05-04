@@ -17,28 +17,37 @@ knitr::opts_chunk$set(
   message = FALSE
 )
 
-library(tidyverse)
-library(readr)
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-library(plotly)
-library(kableExtra)
-library(priceR)
+library(tidyverse) # For data manipulation and visualization
+library(readr) #Used for reading and writing data files efficiently
+library(dplyr) # For data wrangling (filter, group_by, summarise)
+library(ggplot2) # For creating plots
+
+library(tidyr) # For reshaping and cleaning data into tidy format
+library(plotly)  # For interactive visualizations
+library(kableExtra) # For styled tables
+library(priceR)# For currency conversion and price adjustment
 
 set.seed(42)
 ```
 
 # Introduction
 
+<<<<<<< HEAD
 This project analyzes the IMDb Top 1000 Movies data set, obtained from Kaggle, which contains the 1,000 highest-rated movies on IMDb as of the date of collection. The goal is to explore what patterns appear among highly rated movies, including which directors and actors appear most often, how movie ratings compare across decades, and how factors such as genre, run time, votes, and box office gross relate to IMDb ratings.
+=======
+This project analyzes the IMDb Top 1000 Movies dataset. The goal is to explore what patterns appear among highly rated movies, including which directors and actors appear most often, how movie ratings compare across decades, and how factors such as genre, runtime, votes, and box office gross relate to IMDb ratings. moreover, the project focuses on studying the differences between the movies that have been rated highly by people and those which have not(basically all of them are under 1000 top rated). It involves studying the correlation between director collaboration, votes, and box office collections. It will be seen if popularity, criticism, or industrial influence determines the ranking of movies. 
+>>>>>>> 414627dd5199e3965829d6f9b9ff8fda2267f6ce
 
 Rather than only listing plots and tables, this report uses exploratory data analysis to build a story about what makes these top-ranked movies stand out.
 
 # Data & Methods
 
+<<<<<<< HEAD
 The data set was imported from a CSV file named IMDb_top_1000.csv. It contains information about highly rated movies, including title, release year, run time, genre, director, actors, IMDb rating, meta score, number of votes, and gross earnings.
 Before analyzing the data, several columns needed to be cleaned. The Run time column contained text such as "142 min", so the word "min" was removed and the values were converted to numeric. The Gross column included commas and non-numeric characters, so those were removed before converting gross revenue to numeric. The release year was also converted to numeric so it could be grouped by decade.
+=======
+The dataset was imported from a CSV file named imdb_top_1000.csv.(https://www.kaggle.com/datasets/iamsouravbanerjee/imdb-top-1000-movies).It contains information about highly rated movies, including title, release year, runtime, genre, director, actors, IMDb rating, meta score, number of votes, and gross earnings.
+>>>>>>> 414627dd5199e3965829d6f9b9ff8fda2267f6ce
 
 ```{r}
 my_data <- read.csv("imdb_top_1000.csv")
@@ -61,7 +70,7 @@ We first looked at the distribution of IMDb ratings to understand how ratings ar
 ```{r}
 # We use a binwidth of 0.1 because ratings are close  (8.1, 8.2, etc.)
 p_rating_hist <- ggplot(my_data, aes(x = IMDB_Rating)) +
-  geom_histogram(binwidth = 0.1, fill = "red", color = "black") +
+  geom_histogram(binwidth = 0.1, fill = "purple", color = "black") +
   labs(
     title = "Distribution of IMDB Ratings",
     x = "IMDB Rating",
@@ -74,8 +83,15 @@ ggplotly(p_rating_hist)
 
 ```
 
+<<<<<<< HEAD
 
 ## Which Director and Lead Actor work together most often? 
+=======
+The histogram illustrates the distribution of ratings on IMDb for the top 1000 movies. It can be observed that the majority of movies have their ratings around the range of 7.5 to 8.5. Therefore, highly-rated movies are seen to have clustering within a specific range. There is hardly any movie that falls in the very high end, i.e., ratings above 9. This is because the binwidth used is small (0.1).
+
+
+##. Which Director and Lead Actor work together most often? 
+>>>>>>> 414627dd5199e3965829d6f9b9ff8fda2267f6ce
 
 This analysis identifies the most frequent collaborations between directors and their lead actors in the dataset.
 
@@ -105,7 +121,7 @@ ggplotly(p1)
 ```
 The results show that Akira Kurosawa & Toshirō Mifune have the strongest collaboration, appearing together in 7 films, making them the most frequent director–actor pair. This is followed by Martin Scorsese & Robert De Niro, who worked together in 6 films, indicating another well-established partnership.
 
-Interestingly, Charlie Chaplin appears as both director and lead actor in 6 films, reflecting his unique role as a filmmaker who frequently starred in his own work.
+Interestingly, Charlie Chaplin appears as both director and lead actor in 6 films, reflecting his unique role as a filmmaker who frequently starred in his own work. 
 
 
 ## Do movies with the most votes have the highest ratings? 
@@ -134,9 +150,17 @@ The scatterplot shows that highly voted films such as The Shawshank Redemption, 
 
 For example, movies like 12 Angry Men and The Godfather achieve very high ratings despite having relatively fewer votes compared to blockbuster films. These act as exceptions, showing that critically acclaimed films may not always have the largest audience reach.
 
+<<<<<<< HEAD
 
 ##Has the "Golden Age" passed?  Average Ratings over the Decades.
 Does people rated older movie more or new ones (Rakendra S.)
+=======
+##
+9. Has the "Golden Age" passed?  Average Ratings over the Decades.
+
+Does people rated older movie more or new ones?
+
+>>>>>>> 414627dd5199e3965829d6f9b9ff8fda2267f6ce
 ```{r, warning = FALSE, message = FALSE}
 # Cleaning years and grouping by Decade
 decade_trends <- my_data %>%
@@ -160,7 +184,7 @@ ggplotly(p5)
 
 The line plot shows that average ratings fluctuate across decades rather than following a clear upward or downward trend. Some decades appear slightly higher and then it falls, but the differences are relatively small overall as the ratings are very close.
 
-This suggests that there is  strong evidence of a consistent “Golden Age” of cinema in terms of IMDb ratings. Instead, each decade contains a mix of highly rated and lower rated films, and the average is not that much influenced by a few standout movies than a systematic change in quality over time.
+This suggests that there is  strong evidence of a consistent “Golden Age” of cinema in terms of IMDb ratings. Instead, each decade contains a mix of highly rated and lower rated films, and the average is not that much influenced by a few standout movies than a systematic change in quality over time. Lastly, I would say that we are back into the so called "Golden Age" as the average rating is above 8.
 
 
 ## Which 5 Directors have earned the most Total Gross? 
@@ -199,6 +223,7 @@ The results show that Steven Spielberg and Christopher Nolan rank among the top 
 
 Other top performers include Peter Jackson, known for large-scale franchise films, and James Cameron, whose blockbuster productions generate extremely high global revenue.
 
+<<<<<<< HEAD
 ##
 What are the top 5 directors with the the highest movie rating? by Joseph Godinez
 
@@ -313,5 +338,32 @@ ggplot(decade_data, aes(x = Decade, y = IMDB_Rating, fill = Decade)) +
   geom_violin() + stat_summary(fun = mean, geom = "crossbar", width = 0.3, linewidth = 0.5, show.legend = FALSE) + labs(title = "Distribution of IMDB Ratings Across Decades", x = "Decade", y = "IMDB Rating") + theme_minimal(base_size = 13)
 ```
 Distribution of IMDb ratings by decade. Ratings are consistently clustered in the 7.6 – 8.2 range across all decades, with the horizontal bar marking the mean. Older decades show slightly wider distributions, likely reflecting the smaller number of films represented
+=======
+Summary
 
+
+The project investigated the determinants of highly rated movies from the IMDb Top 1000 data set. The report conducted exploratory data analysis for rating distribution, director-actor partnerships, audience participation, and decade trends.
+
+The findings included the following:
+
+IMDb ratings cluster around a narrow range, with an absence of highly rated movies
+Many top-rated movies have strong director-actor partnerships
+Popularity does not correlate strongly with ratings
+There is no golden age of movies, as ratings do not change over time
+A few directors rule the box office
+
+These results imply that the success of films depends on various things such as collaborative effort in creativity, story narration, and how audiences receive the film, rather than just one determining factor.
+>>>>>>> 414627dd5199e3965829d6f9b9ff8fda2267f6ce
+
+
+Limitations
+Only best movies are included in the dataset
+Missing Values in data (especially gross revenue) can skew findings
+Movie ratings are subjective and rely on users' views.
+
+Future Improvements
+
+In the future we can include lower-rated movies for comparison.
+Analyze genre-specific trends.
+Use predictive modeling to identify drivers of movie success.
 
