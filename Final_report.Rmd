@@ -1,0 +1,464 @@
+---
+title: "Final Project - Top 1000 Movies by IMDb Rating"
+author: "Joseph G., Barbara S., Rakendra S."
+date: "2026-04-08"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+    theme: sandstone
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
+
+library(tidyverse) # For data manipulation and visualization
+library(readr) #Used for reading and writing data files efficiently
+library(dplyr) # For data wrangling (filter, group_by, summarise)
+library(ggplot2) # For creating plots
+
+library(tidyr) # For reshaping and cleaning data into tidy format
+library(plotly)  # For interactive visualizations
+library(kableExtra) # For styled tables
+library(priceR)# For currency conversion and price adjustment
+
+set.seed(42)
+```
+
+---
+
+# <u>Introduction</u>
+
+This project analyzes the IMDb Top 1000 Movies dataset. The goal is to explore what patterns appear among highly rated movies, including which directors and actors appear most often, how movie ratings compare across decades, and how factors such as genre, runtime, votes, and box office gross relate to IMDb ratings. moreover, the project focuses on studying the differences between the movies that have been rated highly by people and those which have not(basically all of them are under 1000 top rated). It involves studying the correlation between director collaboration, votes, and box office collections. It will be seen if popularity, criticism, or industrial influence determines the ranking of movies. 
+
+---
+
+# <u>Data & Methods</u>
+
+The data set was imported from a CSV file named IMDb_top_1000.csv. It contains information about highly rated movies, including title, release year, run time, genre, director, actors, IMDb rating, meta score, number of votes, and gross earnings.
+Before analyzing the data, several columns needed to be cleaned. The Run time column contained text such as "142 min", so the word "min" was removed and the values were converted to numeric. The Gross column included commas and non-numeric characters, so those were removed before converting gross revenue to numeric. The release year was also converted to numeric so it could be grouped by decade.
+
+```{r}
+my_data <- read.csv("imdb_top_1000.csv")
+my_data <- my_data %>%
+  mutate(
+    Runtime = as.numeric(gsub("[^0-9]", "", Runtime)),
+    Gross = as.numeric(gsub("[^0-9.]", "", Gross)),
+    Released_Year = as.numeric(gsub("[^0-9]", "", Released_Year))
+  )
+```
+  
+  After cleaning, the data set contains r nrow(my_data) movies and r ncol(my_data) variables. Some missing values remain, especially in columns such as gross revenue and meta score, so calculations use na.rm = TRUE when appropriate.
+
+---
+
+# <u>Exploratory Data Analysis</u>
+
+## 1. Most Common IMDb Ratings
+
+We first looked at the distribution of IMDb ratings to understand how ratings are spread across the top 1000 movies.
+
+```{r}
+# We use a binwidth of 0.1 because ratings are close  (8.1, 8.2, etc.)
+p_rating_hist <- ggplot(my_data, aes(x = IMDB_Rating)) +
+  geom_histogram(binwidth = 0.1, fill = "purple", color = "black") +
+  labs(
+    title = "Distribution of IMDB Ratings",
+    x = "IMDB Rating",
+    y = "Number of Movies"
+  ) +
+  theme_minimal()
+
+
+ggplotly(p_rating_hist)
+
+```
+
+
+
+## 2. Which Director and Lead Actor work together most often? 
+
+The histogram illustrates the distribution of ratings on IMDb for the top 1000 movies. It can be observed that the majority of movies have their ratings around the range of 7.5 to 8.5. Therefore, highly-rated movies are seen to have clustering within a specific range. There is hardly any movie that falls in the very high end, i.e., ratings above 9. This is because the binwidth used is small (0.1).
+This analysis identifies the most frequent collaborations between directors and their lead actors in the dataset.
+
+```{r}
+
+top_duos <- my_data %>%
+  group_by(Director, Star1) %>%
+  summarise(movie_count = n(), .groups = "drop") %>%
+  arrange(desc(movie_count)) %>%
+  head(5)
+
+p1 <- ggplot(top_duos, aes(
+  x = movie_count,
+  y = reorder(paste(Director, "&", Star1), movie_count),
+  fill = Director
+)) +
+  geom_col() +
+  labs(
+    title = "Top 5 Director & Actor Pairings",
+    x = "Number of Movies Together",
+    y = "Partnership"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggplotly(p1)
+```
+The results show that Akira Kurosawa & Toshirō Mifune have the strongest collaboration, appearing together in 7 films, making them the most frequent director–actor pair. This is followed by Martin Scorsese & Robert De Niro, who worked together in 6 films, indicating another well-established partnership.
+
+Interestingly, Charlie Chaplin appears as both director and lead actor in 6 films, reflecting his unique role as a filmmaker who frequently starred in his own work. 
+
+
+## 3. Do movies with the most votes have the highest ratings? 
+ 
+This analysis examines whether movies with more audience votes also receive higher IMDb ratings.
+
+```{r, warning = FALSE, message = FALSE}
+
+p3 <- ggplot(my_data, aes(x = No_of_Votes, y = IMDB_Rating, text = Series_Title)) +
+  geom_point(alpha = 0.5, color = "green") +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 0.8, color = "red") +
+  labs(
+    title = "Number of Votes and IMDb Rating",
+    subtitle = "Relationship between audience popularity and perceived movie quality",
+    x = "Number of Votes",
+    y = "IMDb Rating",
+    color = "Film",
+    caption = "Data: IMDb Top 1000 Movies Dataset"
+  ) +
+  theme_minimal()
+
+ggplotly(p3, tooltip = "text")
+```
+
+The scatterplot shows that highly voted films such as The Shawshank Redemption, The Dark Knight, and Inception cluster in the 7–9 rating range, indicating that popular movies are generally well-rated. However, they are not always the highest-rated films.
+
+For example, movies like 12 Angry Men and The Godfather achieve very high ratings despite having relatively fewer votes compared to blockbuster films. These act as exceptions, showing that critically acclaimed films may not always have the largest audience reach.
+
+
+## 4.  Has the "Golden Age" passed?  Average Ratings over the Decades.
+
+Does people rated older movie more or new ones?
+
+```{r, warning = FALSE, message = FALSE}
+
+# Cleaning years and grouping by Decade
+decade_trends <- my_data %>%
+  mutate(Year = as.numeric(gsub("[^0-9]", "", Released_Year))) %>%
+  filter(!is.na(Year)) %>%
+  mutate(Decade = (Year %/% 10) * 10) %>%
+  group_by(Decade) %>%
+  summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))
+
+# Line graph for trends
+p5 <- ggplot(decade_trends, aes(x = Decade, y = avg_rating)) +
+  geom_line(size = 1, color = "black") +
+  geom_point(size = 2) +
+  labs(title = "Average IMDB Rating by Decade", x = "Decade", y = "Average Rating") +
+  theme_minimal()
+
+ggplotly(p5)
+```
+
+
+The line plot shows that average ratings fluctuate across decades rather than following a clear upward or downward trend. Some decades appear slightly higher and then it falls, but the differences are relatively small overall as the ratings are very close.
+
+This suggests that there is  strong evidence of a consistent “Golden Age” of cinema in terms of IMDb ratings. Instead, each decade contains a mix of highly rated and lower rated films, and the average is not that much influenced by a few standout movies than a systematic change in quality over time. Lastly, I would say that we are back into the so called "Golden Age" as the average rating is above 8.
+
+
+## 5. Which 5 Directors have earned the most Total Gross? 
+
+This analysis identifies the directors with the highest total box office earnings across all their films in the dataset.
+ 
+```{r, warning = FALSE, message = FALSE}
+director_wealth <- my_data %>%
+  mutate(Gross_Clean = as.numeric(gsub(",", "", Gross))) %>%
+  filter(!is.na(Gross_Clean)) %>%
+  group_by(Director) %>%
+  summarise(
+    Total_Movies = n(),
+    Total_Gross_Millions = sum(Gross_Clean, na.rm = TRUE) / 1000000,
+    Average_IMDB = mean(IMDB_Rating, na.rm = TRUE)
+  ) %>%
+  arrange(desc(Total_Gross_Millions)) %>%
+  head(5)
+
+director_wealth %>%
+  rename(
+    `Total Movies` = Total_Movies,
+    `Total Gross (Millions)` = Total_Gross_Millions,
+    `Average IMDB Rating` = Average_IMDB
+  ) %>%
+  knitr::kable(
+    caption = "Top 5 Directors by Total Gross Revenue. A small group of directors dominate box office earnings."
+  ) %>%
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  )
+```
+
+The results show that Steven Spielberg and Christopher Nolan rank among the top directors by total gross revenue, driven by multiple high-earning films. These directors consistently produce commercially successful movies that contribute significantly to their overall earnings.
+
+Other top performers include Peter Jackson, known for large-scale franchise films, and James Cameron, whose blockbuster productions generate extremely high global revenue.
+
+
+## 6. What are the top 5 directors with the the highest movie rating?
+
+While the previous section examined how often directors appear in the data set, frequency alone does not capture quality. The following table ranks the top 5 directors by their average IMDb rating across all their films in the data set, limited to directors with enough movies to produce a meaningful average
+
+```{r, warning = FALSE, message = FALSE}
+ top_5_directors <- my_data %>%  
+   group_by(Director)%>%         
+   summarise(avg_rating = mean(IMDB_Rating, na.rm = TRUE))%>% 
+   arrange(desc(avg_rating))%>%  
+   head(5)%>% 
+mutate(Rank = row_number(), avg_rating = round(avg_rating, 2))%>%
+  select(Rank, Director, avg_rating)
+top_5_directors%>%
+  kable(col.names = c("Rank", "Director", "Avg IMDB Rating"), align = c("c", "l", "c"))%>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, position = "center")
+      
+```
+
+## 7. Who are the top 5 lead actors among the top imdp movies and how many times they appear in this data set ranking.
+
+To identify which actors appear most frequently among the highest-rated films, the data set was grouped by lead actor and ranked by number of appearances. The table below shows the top 10 lead actors along with their share of the data set, followed by a bar chart for visual comparison.
+
+```{r, warning = FALSE, message = FALSE}
+top_actors <- my_data%>%
+  group_by(Star1)%>%
+  summarise(Movie_count = n())%>%
+  arrange(desc(Movie_count))%>%
+  head(10)%>%
+  mutate(Rank = row_number(), Percentage = paste0(round(Movie_count / nrow(my_data)*100, 1), "%"))%>%
+  select(Rank, Star1, Movie_count, Percentage)
+top_actors%>%
+  kable(col.names = c("Rank", "Actor", "Movies in Dataser", "% in Dataset"), align = c("c", "l", "c", "c"))%>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, position = "center")
+  
+g <- ggplot(top_actors, aes(x = Star1, y = Movie_count, fill = Star1)) + geom_col() +labs(title = "Top 5 lead actors and how many time they appear in the data set", x = "Lead actor's name", y = "Amount of times they appear in the dataset" )
+
+ggplotly(g)
+```
+
+## 8. What is the Average box office gross by decade and adjusted inflation gross by decade
+
+Raw box office numbers can be misleading when comparing movies across decades, since a dollar in 1950 is worth much more than a dollar today. To account for this, gross earnings were adjusted for inflation to 2024 USD using the priceR package. The following chart compares the nominal and inflation-adjusted average gross by decade
+
+```{r, warning = FALSE, message = FALSE}
+
+decade_gross <- my_data %>%
+  mutate(
+    adjusted_gross = adjust_for_inflation(Gross, Released_Year, "US", to_date = 2024),
+    Decade = (Released_Year %/% 10) * 10
+  ) %>%
+  group_by(Decade) %>%
+  summarise(
+    Average_Gross = mean(Gross, na.rm = TRUE),
+    Average_Adjusted_Gross = mean(adjusted_gross, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+decade_gross %>%
+  kable(col.names = c("Decade", "Avg Nominal Gross", "Avg Adjusted Gross (2024)"),
+        caption = "Average box office gross by decade.") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+decade_long <- decade_gross %>%
+  pivot_longer(
+    cols = c(Average_Gross, Average_Adjusted_Gross),
+    names_to = "Type",
+    values_to = "Gross"
+  ) %>%
+  mutate(Type = recode(Type,
+    "Average_Gross" = "Nominal Gross",
+    "Average_Adjusted_Gross" = "Adjusted Gross (2024)"))
+
+g <- ggplot(decade_long, aes(x = Decade, y = Gross, colour = Type)) +
+  geom_line(linewidth = 1.0) +
+  geom_point(size = 3) +
+  labs(title = "Average box office by decade",
+       subtitle = "Nominal vs. Inflation-Adjusted to 2024 USD",
+       x = "Decade",
+       y = "Average Gross (Millions USD)") +
+  theme_minimal()
+
+ggplotly(g)
+```
+
+Average box office gross by decade, shown in both nominal and inflation-adjusted 2024 USD. The gap between the two lines widens for older decades, reflecting how significantly inflation erodes raw earnings over time. Adjusted figures reveal that mid-century films were commercially stronger than their nominal numbers suggest.
+
+## 9. Top 10 Director & Lead Actor Pairs among Top 1000 IMDB Rated Movies
+
+The following chart shows the ten most frequent director and lead actor pairings in the dataset, based on how many movies they share.
+```{r, warning = FALSE, message = FALSE}
+pair_data <- my_data %>%
+  group_by(Director, Star1) %>%
+  summarise(Movie_Count = n(), .groups = "drop") %>%
+  slice_max(Movie_Count, n = 10) %>%
+  mutate(Pair = paste(Director, "+", Star1))
+
+ggplot(pair_data, aes(x = reorder(Pair, Movie_Count), y = Movie_Count, fill = Movie_Count)) +
+  geom_col(width = 0.5) +  geom_text(aes(label = paste(Movie_Count, "films")), hjust = -0.2, size = 3.5) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.3))) + labs(title = "Top 10 Director & Lead Actor Pairs",
+    subtitle = "Among Top 1000 IMDB Rated Movies",
+    x = NULL,
+    y = "Number of Movies Together"
+  ) +theme_minimal(base_size = 12)
+
+```
+
+## 10. How does the distribution of ratings compare across decades?
+
+To examine how ratings vary across time, movies were grouped by decade and visualized using a violin plot. Only decades with at least five movies are included to avoid misleading distributions from very small samples
+
+```{r, warning = FALSE, message = FALSE}
+decade_data <- my_data %>%
+  mutate(Decade = paste0((Released_Year %/% 10) * 10, "s")) %>%
+group_by(Decade) %>%
+  filter(n() >= 5)%>%
+  ungroup()
+
+ggplot(decade_data, aes(x = Decade, y = IMDB_Rating, fill = Decade)) +
+  geom_violin() + stat_summary(fun = mean, geom = "crossbar", width = 0.3, linewidth = 0.5, show.legend = FALSE) + labs(title = "Distribution of IMDB Ratings Across Decades", x = "Decade", y = "IMDB Rating") + theme_minimal(base_size = 13)
+```
+Distribution of IMDb ratings by decade. Ratings are consistently clustered in the 7.6 – 8.2 range across all decades, with the horizontal bar marking the mean. Older decades show slightly wider distributions, likely reflecting the smaller number of films represented
+
+## 11. What is the relationship between ratings and runtime?
+
+1. First Part:
+To examine whether longer movies tend to be rated higher, the relationship between runtime and IMDb rating was plotted as a scatterplot. Each point represents one movie in the dataset
+```{r, warning = FALSE, message = FALSE}
+
+my_data <- my_data%>%
+  mutate(Runtime = as.numeric(gsub(" min", "", Runtime)))
+  
+ggplot(my_data, aes(x = Runtime, y = IMDB_Rating)) +
+  geom_point(alpha = 0.6) +
+  labs(
+    title = "People's Rating vs Runtime",
+    x = "Runtime",
+    y = "IMDb Rating"
+  )
+```
+There is no strong linear relationship between runtime and IMDb rating. However, movies under 80 minutes tend to have slightly lower ratings, while the highest-rated films are generally clustered between 100 and 180 minutes, suggesting that very short films are underrepresented among top-rated movies."
+
+2. Second Part:
+Beyond audience ratings, meta scores offer a critics' perspective on movie quality. The following scatterplot examines whether runtime has any relationship with how critics scored these films.
+
+```{r, warning = FALSE, message = FALSE}
+ggplot(my_data, aes(x = Runtime, y = Meta_score)) +
+  geom_point(alpha = 0.6) +
+  labs(
+    title = "Critics Score vs Runtime",
+    x = "Runtime",
+    y = "Meta_score"
+  )
+```
+Critic's scores show a similarly weak relationship with run time, with scores spread widely across all movie lengths. This suggests that run time alone is not a strong predictor of critical reception, and that other factors such as genre or director likely play a bigger role.
+
+## 12. Which genres tend to have the longest runtime?
+
+Since the Genre column contains multiple genres per movie, each film was split into individual genre entries before grouping. The following table shows the average runtime for each genre, ranked from longest to shortest
+
+```{r, warning = FALSE, message = FALSE}
+my_data <- my_data %>%
+  mutate(Runtime = as.numeric(gsub("[^0-9]", "", Runtime)))
+
+my_data_genre <- my_data %>%
+  separate_rows(Genre, sep = ", ")
+
+genre_runtime <- my_data_genre %>%
+  group_by(Genre) %>%
+  summarize(avg_runtime = mean(Runtime, na.rm = TRUE)) %>%
+  arrange(desc(avg_runtime))
+
+genre_runtime %>%
+  mutate(avg_runtime = round(avg_runtime, 1)) %>%
+  kable(col.names = c("Genre", "Avg Runtime (minutes)"),
+        caption = "Average runtime by genre.") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+```{r, warning = FALSE, message = FALSE}
+ggplot(genre_runtime, aes(x = reorder(Genre, avg_runtime), y = avg_runtime)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() + 
+  labs(
+    title = "Average Runtime by Genre",
+    x = "Genre",
+    y = "Average Runtime (minutes)"
+  ) + theme_minimal()
+```
+History, Musicals and Biography genres tend to have the longest average run times, while Horror, Comedy films and animations are generally shorter. This pattern likely reflects storytelling conventions as well as character-driven narratives that tend to need more screen time than fast-paced genre films.
+
+
+## 13. Which genre produces the most highly-rated movies (rating \> 8.5)?
+
+To identify which genres are most associated with exceptional films, the dataset was filtered to only include movies with an IMDb rating above 8.5. Since each movie can belong to multiple genres, entries were split by genre before counting
+```{r, warning = FALSE, message = FALSE}
+high_rated <- my_data %>%
+  filter(IMDB_Rating > 8.5)
+
+high_rated_genre <- high_rated %>%
+  separate_rows(Genre, sep = ", ")
+
+genre_counts <- high_rated_genre %>%
+  group_by(Genre) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+genre_counts %>%
+  kable(col.names = c("Genre", "Number of Movies"),
+        caption = "Number of movies rated above 8.5 by genre.") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+ggplot(genre_counts, aes(x = reorder(Genre, count), y = count)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Number of Highly Rated Movies (IMDb > 8.5) by Genre",
+    x = "Genre",
+    y = "Count of Movies"
+  )
+```
+Drama is by far the most common genre among the highest-rated films, appearing significantly more often than any other category.
+
+---
+
+# <u>Conclusion</u>
+
+## Summary
+
+The project investigated the determinants of highly rated movies from the IMDb Top 1000 data set. The report conducted exploratory data analysis for rating distribution, director-actor partnerships, audience participation, and decade trends.
+
+The findings included the following:
+
+- IMDb ratings cluster around a narrow range, with an absence of highly rated movies
+- Many top-rated movies have strong director-actor partnerships
+- Popularity does not correlate strongly with ratings
+- There is no golden age of movies, as ratings do not change over time
+- A few directors rule the box office
+
+These results imply that the success of films depends on various things such as collaborative effort in creativity, story narration, and how audiences receive the film, rather than just one determining factor.
+
+## Limitations
+- Only best movies are included in the data set
+- Missing Values in data (especially gross revenue) can skew findings
+- Movie ratings are subjective and rely on users' views.
+
+## Future Improvements
+
+- In the future we can include lower-rated movies for comparison.
+- Analyze genre-specific trends.
+- Use predictive modeling to identify drivers of movie success.
+
